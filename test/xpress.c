@@ -96,7 +96,7 @@ _add(void *data, int64_t frames, const xpress_state_t *state,
 }
 
 static void
-_put(void *data, int64_t frames, const xpress_state_t *state,
+_set(void *data, int64_t frames, const xpress_state_t *state,
 	xpress_uuid_t uuid, void *target)
 {
 	plughandle_t *handle = data;
@@ -134,7 +134,7 @@ _del(void *data, int64_t frames, const xpress_state_t *state,
 static const xpress_iface_t iface = {
 	.size = sizeof(target_t),
 	.add = _add,
-	.put = _put,
+	.set = _set,
 	.del = _del
 };
 

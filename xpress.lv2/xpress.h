@@ -35,7 +35,8 @@ extern "C" {
  * API START
  *****************************************************************************/
 
-#define XPRESS_PREFIX				"http://open-music-kontrollers.ch/lv2/xpress#"
+#define XPRESS_URI	  			"http://open-music-kontrollers.ch/lv2/xpress"
+#define XPRESS_PREFIX				XPRESS_URI"#"
 
 // Features
 #define XPRESS_VOICE_MAP		XPRESS_PREFIX"voiceMap"
@@ -43,9 +44,10 @@ extern "C" {
 // Message types
 #define XPRESS_PUT					XPRESS_PREFIX"Put"
 #define XPRESS_DELETE				XPRESS_PREFIX"Delete"
-#define XPRESS_CLEAR				XPRESS_PREFIX"Clear"
+#define XPRESS_ALIVE				XPRESS_PREFIX"Alive"
 
 // Properties
+#define XPRESS_SOURCE				XPRESS_PREFIX"source"
 #define XPRESS_UUID					XPRESS_PREFIX"uuid"
 #define XPRESS_ZONE					XPRESS_PREFIX"zone"
 #define XPRESS_PITCH				XPRESS_PREFIX"pitch"
@@ -78,11 +80,11 @@ typedef void (*xpress_state_cb_t)(void *data,
 enum _xpress_event_t {
 	XPRESS_EVENT_ADD					= (1 << 0),
 	XPRESS_EVENT_DEL					= (1 << 1),
-	XPRESS_EVENT_PUT					= (1 << 2)
+	XPRESS_EVENT_SET					= (1 << 2)
 };
 
 #define XPRESS_EVENT_NONE		(0)
-#define XPRESS_EVENT_ALL		(XPRESS_EVENT_ADD | XPRESS_EVENT_DEL | XPRESS_EVENT_PUT)
+#define XPRESS_EVENT_ALL		(XPRESS_EVENT_ADD | XPRESS_EVENT_DEL | XPRESS_EVENT_SET)
 
 struct _xpress_state_t {
 	int32_t zone;
@@ -100,7 +102,7 @@ struct _xpress_iface_t {
 	size_t size;
 
 	xpress_state_cb_t add;
-	xpress_state_cb_t put;
+	xpress_state_cb_t set;
 	xpress_state_cb_t del;
 };
 
@@ -121,9 +123,10 @@ struct _xpress_t {
 		LV2_URID atom_Float;
 
 		LV2_URID xpress_Put;
+		LV2_URID xpress_Alive;
 		LV2_URID xpress_Delete;
-		LV2_URID xpress_Clear;
 
+		LV2_URID xpress_source;
 		LV2_URID xpress_uuid;
 		LV2_URID xpress_zone;
 
@@ -316,9 +319,10 @@ xpress_init(xpress_t *xpress, const size_t max_nvoices, LV2_URID_Map *map,
 	xpress->urid.atom_Float = map->map(map->handle, LV2_ATOM__Float);
 
 	xpress->urid.xpress_Put = map->map(map->handle, XPRESS_PUT);
+	xpress->urid.xpress_Alive = map->map(map->handle, XPRESS_ALIVE);
 	xpress->urid.xpress_Delete = map->map(map->handle, XPRESS_DELETE);
-	xpress->urid.xpress_Clear = map->map(map->handle, XPRESS_CLEAR);
 
+	xpress->urid.xpress_source = map->map(map->handle, XPRESS_SOURCE);
 	xpress->urid.xpress_uuid = map->map(map->handle, XPRESS_UUID);
 	xpress->urid.xpress_zone = map->map(map->handle, XPRESS_ZONE);
 
@@ -428,8 +432,8 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 		}
 		else
 		{
-			if( (xpress->event_mask & XPRESS_EVENT_PUT) && xpress->iface->put)
-				xpress->iface->put(xpress->data, frames, &state, uuid->body, target);
+			if( (xpress->event_mask & XPRESS_EVENT_SET) && xpress->iface->set)
+				xpress->iface->set(xpress->data, frames, &state, uuid->body, target);
 		}
 
 		return 1;
@@ -458,19 +462,6 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 
 		if( (xpress->event_mask & XPRESS_EVENT_DEL) && xpress->iface->del)
 			xpress->iface->del(xpress->data, frames, NULL, voice_uuid, voice_target);
-
-		return 1;
-	}
-	else if(obj->body.otype == xpress->urid.xpress_Clear)
-	{
-		XPRESS_VOICE_FREE(xpress, voice)
-		{
-			const xpress_uuid_t voice_uuid = voice->uuid;
-			void *voice_target = voice->target;
-
-			if( (xpress->event_mask & XPRESS_EVENT_DEL) && xpress->iface->del)
-				xpress->iface->del(xpress->data, frames, NULL, voice_uuid, voice_target);
-		}
 
 		return 1;
 	}
