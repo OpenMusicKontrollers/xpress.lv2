@@ -70,7 +70,7 @@ typedef struct _xpress_iface_t xpress_iface_t;
 typedef struct _xpress_t xpress_t;
 
 // function callbacks
-typedef xpress_uuid_t (*xpress_map_new_uuid_t)(void *handle);
+typedef xpress_uuid_t (*xpress_map_new_uuid_t)(void *handle, uint32_t flag);
 
 typedef void (*xpress_add_cb_t)(void *data, int64_t frames,
 	const xpress_state_t *state, xpress_uuid_t uuid, void *target);
@@ -730,7 +730,7 @@ xpress_alive(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames)
 static inline int32_t
 xpress_map(xpress_t *xpress)
 {
-	return xpress->voice_map->new_uuid(xpress->voice_map->handle);
+	return xpress->voice_map->new_uuid(xpress->voice_map->handle, 0);
 }
 
 #ifdef __cplusplus

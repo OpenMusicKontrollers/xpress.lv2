@@ -59,8 +59,9 @@ struct _plughandle_t {
 static atomic_uint voice_uuid = ATOMIC_VAR_INIT(0);
 
 static xpress_uuid_t
-_voice_map_new_uuid(void *handle)
+_voice_map_new_uuid(void *handle, uint32_t flag)
 {
+	(void)flag;
 	atomic_uint *uuid = handle;
 	return atomic_fetch_add_explicit(uuid, 1, memory_order_relaxed);
 }
