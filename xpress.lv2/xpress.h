@@ -56,7 +56,7 @@ extern "C" {
 #define XPRESS__dTimbre			XPRESS_PREFIX"dTimbre"
 
 // types
-typedef int64_t xpress_uuid_t;
+typedef uint32_t xpress_uuid_t;
 
 // enumerations
 typedef enum _xpress_event_t xpress_event_t;
@@ -386,8 +386,8 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 
 	if(obj->body.otype == xpress->urid.xpress_Token)
 	{
-		const LV2_Atom_Long *source = NULL;
-		const LV2_Atom_Long *uuid = NULL;
+		const LV2_Atom_Int *source = NULL;
+		const LV2_Atom_Int *uuid = NULL;
 		const LV2_Atom_Int *zone = NULL;
 		const LV2_Atom_Float *pitch = NULL;
 		const LV2_Atom_Float *pressure = NULL;
@@ -408,8 +408,8 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 			xpress->urid.xpress_dTimbre, &dTimbre,
 			0);
 
-		if(  !source || (source->atom.type != forge->Long)
-			|| !uuid || (uuid->atom.type != forge->Long) )
+		if(  !source || (source->atom.type != forge->Int)
+			|| !uuid || (uuid->atom.type != forge->Int) )
 		{
 			return 0;
 		}
@@ -462,7 +462,7 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 	}
 	else if(obj->body.otype == xpress->urid.xpress_Alive)
 	{
-		const LV2_Atom_Long *source = NULL;
+		const LV2_Atom_Int *source = NULL;
 		const LV2_Atom_Tuple *body = NULL;
 
 		lv2_atom_object_get(obj,
@@ -470,16 +470,16 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 			xpress->urid.xpress_body, &body,
 			0);
 
-		if(  !source || (source->atom.type != forge->Long) )
+		if(  !source || (source->atom.type != forge->Int) )
 			return 0;
 
 		if(body && (body->atom.type == forge->Tuple) ) // non-existent body is a valid empty body
 		{
 			LV2_ATOM_TUPLE_FOREACH(body, item)
 			{
-				const LV2_Atom_Long *uuid = (const LV2_Atom_Long *)item;
+				const LV2_Atom_Int *uuid = (const LV2_Atom_Int *)item;
 
-				if(uuid->atom.type == forge->Long)
+				if(uuid->atom.type == forge->Int)
 				{
 					xpress_voice_t *voice = _xpress_voice_get(xpress, uuid->body);
 					if(voice)
@@ -504,7 +504,7 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 
 		XPRESS_VOICE_FOREACH(xpress, voice)
 		{
-			if(  (voice->source == source->body)
+			if(  (voice->source == (xpress_uuid_t)source->body)
 				&& !voice->alive )
 			{
 				if( (xpress->event_mask & XPRESS_EVENT_DEL) && xpress->iface->del)
@@ -612,12 +612,12 @@ xpress_token(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 		if(ref)
 			ref = lv2_atom_forge_key(forge, xpress->urid.xpress_source);
 		if(ref)
-			ref = lv2_atom_forge_long(forge, xpress->source);
+			ref = lv2_atom_forge_int(forge, xpress->source);
 
 		if(ref)
 			ref = lv2_atom_forge_key(forge, xpress->urid.xpress_uuid);
 		if(ref)
-			ref = lv2_atom_forge_long(forge, uuid);
+			ref = lv2_atom_forge_int(forge, uuid);
 
 		if(ref)
 			ref = lv2_atom_forge_key(forge, xpress->urid.xpress_zone);
@@ -676,7 +676,7 @@ xpress_alive(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames)
 		if(ref)
 			ref = lv2_atom_forge_key(forge, xpress->urid.xpress_source);
 		if(ref)
-			ref = lv2_atom_forge_long(forge, xpress->source);
+			ref = lv2_atom_forge_int(forge, xpress->source);
 
 		if(ref)
 			ref = lv2_atom_forge_key(forge, xpress->urid.xpress_body);
@@ -686,7 +686,7 @@ xpress_alive(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames)
 			XPRESS_VOICE_FOREACH(xpress, voice)
 			{
 				if(ref)
-					ref = lv2_atom_forge_long(forge, voice->uuid);
+					ref = lv2_atom_forge_int(forge, voice->uuid);
 			}
 		}
 		if(ref)

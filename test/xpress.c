@@ -56,12 +56,12 @@ struct _plughandle_t {
 	targetO_t targetO [MAX_NVOICES];
 };
 
-static atomic_long voice_uuid = ATOMIC_VAR_INIT(0);
+static atomic_uint voice_uuid = ATOMIC_VAR_INIT(0);
 
 static xpress_uuid_t
 _voice_map_new_uuid(void *handle)
 {
-	atomic_long *uuid = handle;
+	atomic_uint *uuid = handle;
 	return atomic_fetch_add_explicit(uuid, 1, memory_order_relaxed);
 }
 
@@ -75,7 +75,7 @@ _dump(plughandle_t *handle)
 {
 	XPRESS_VOICE_FOREACH(&handle->xpressI, voice)
 	{
-		lv2_log_trace(&handle->logger, "%"PRIi64, voice->uuid);
+		lv2_log_trace(&handle->logger, "%"PRIu32" (%"PRIu32")", voice->uuid, voice->source);
 	}
 	lv2_log_trace(&handle->logger, "");
 }
@@ -88,7 +88,7 @@ _add(void *data, int64_t frames, const xpress_state_t *state,
 	LV2_Atom_Forge *forge = &handle->forge;
 	targetI_t *src = target;
 
-	lv2_log_trace(&handle->logger, "ADD: %"PRIi64, uuid);
+	lv2_log_trace(&handle->logger, "ADD: %"PRIu32, uuid);
 
 	targetO_t *dst = xpress_create(&handle->xpressO, &src->uuidO);
 	(void)dst;
@@ -110,7 +110,7 @@ _set(void *data, int64_t frames, const xpress_state_t *state,
 	LV2_Atom_Forge *forge = &handle->forge;
 	targetI_t *src = target;
 
-	lv2_log_trace(&handle->logger, "PUT: %"PRIi64, uuid);
+	lv2_log_trace(&handle->logger, "PUT: %"PRIu32, uuid);
 
 	targetO_t *dst = xpress_get(&handle->xpressO, src->uuidO);
 
@@ -131,7 +131,7 @@ _del(void *data, int64_t frames,
 	LV2_Atom_Forge *forge = &handle->forge;
 	targetI_t *src = target;
 
-	lv2_log_trace(&handle->logger, "DEL: %"PRIi64, uuid);
+	lv2_log_trace(&handle->logger, "DEL: %"PRIu32, uuid);
 
 	xpress_free(&handle->xpressO, src->uuidO);
 
@@ -203,7 +203,7 @@ instantiate(const LV2_Descriptor* descriptor, double rate,
 	if(!xpress_init(&handle->xpressO, MAX_NVOICES, handle->map, voice_map,
 			XPRESS_EVENT_NONE, &ifaceO, handle->targetO, handle) )
 	{
-		fprintf(stderr, "failed to initialize xpressI structure\n");
+		fprintf(stderr, "failed to initialize xpressO structure\n");
 		free(handle);
 		return NULL;
 	}
