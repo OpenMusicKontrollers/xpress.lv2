@@ -78,7 +78,7 @@ _dump(plughandle_t *handle)
 	{
 		lv2_log_trace(&handle->logger, "%"PRIu32" (%"PRIu32")", voice->uuid, voice->source);
 	}
-	lv2_log_trace(&handle->logger, "");
+	lv2_log_trace(&handle->logger, "%s", "");
 }
 
 static void
@@ -114,6 +114,7 @@ _set(void *data, int64_t frames, const xpress_state_t *state,
 	lv2_log_trace(&handle->logger, "PUT: %"PRIu32, uuid);
 
 	targetO_t *dst = xpress_get(&handle->xpressO, src->uuidO);
+	(void)dst;
 
 	xpress_state_t new_state = *state;
 	new_state.pitch *= 2;
