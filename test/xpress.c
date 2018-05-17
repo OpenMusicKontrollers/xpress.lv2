@@ -267,6 +267,8 @@ cleanup(LV2_Handle instance)
 {
 	plughandle_t *handle = instance;
 
+	xpress_deinit(&handle->xpressI);
+	xpress_deinit(&handle->xpressO);
 	free(handle);
 }
 
