@@ -68,9 +68,6 @@ extern "C" {
 // types
 typedef uint32_t xpress_uuid_t;
 
-// enumerations
-typedef enum _xpress_event_t xpress_event_t;
-
 // structures
 typedef struct _xpress_map_t xpress_map_t;
 typedef struct _xpress_shm_t xpress_shm_t;
@@ -90,11 +87,11 @@ typedef xpress_add_cb_t xpress_set_cb_t;
 typedef void (*xpress_del_cb_t)(void *data, int64_t frames,
 	xpress_uuid_t uuid, void *target);
 
-enum _xpress_event_t {
+typedef enum _xpress_event_t {
 	XPRESS_EVENT_ADD					= (1 << 0),
 	XPRESS_EVENT_DEL					= (1 << 1),
 	XPRESS_EVENT_SET					= (1 << 2)
-};
+} xpress_event_t;
 
 #define XPRESS_EVENT_NONE		(0)
 #define XPRESS_EVENT_ALL		(XPRESS_EVENT_ADD | XPRESS_EVENT_DEL | XPRESS_EVENT_SET)
@@ -167,7 +164,7 @@ struct _xpress_t {
 
 	unsigned max_nvoices;
 	unsigned nvoices;
-	xpress_voice_t voices [0];
+	xpress_voice_t voices [1];
 };
 
 #define XPRESS_CONCAT_IMPL(X, Y) X##Y
@@ -175,7 +172,7 @@ struct _xpress_t {
 
 #define XPRESS_T(XPRESS, MAX_NVOICES) \
 	xpress_t (XPRESS); \
-	xpress_voice_t XPRESS_CONCAT(_voices, __COUNTER__) [(MAX_NVOICES)];
+	xpress_voice_t XPRESS_CONCAT(_voices, __COUNTER__) [(MAX_NVOICES - 1)]
 
 #define XPRESS_VOICE_FOREACH(XPRESS, VOICE) \
 	for(xpress_voice_t *(VOICE) = &(XPRESS)->voices[(int)(XPRESS)->nvoices - 1]; \
@@ -263,8 +260,8 @@ _xpress_urn_uuid(LV2_URID_Map *map)
 	for(unsigned i=0x0; i<0x10; i++)
 		bytes[i] = rand() & 0xff;
 
-	bytes[6] = (bytes[6] & 0b00001111) | 0b01000000; // set four most significant bits of 7th byte to 0b0100
-	bytes[8] = (bytes[8] & 0b00111111) | 0b10000000; // set two most significant bits of 9th byte to 0b10
+	bytes[6] = (bytes[6] & 0x0f) | 0x40; // set four most significant bits of 7th byte to 0b0100
+	bytes[8] = (bytes[8] & 0x3f) | 0x80; // set two most significant bits of 9th byte to 0b10
 
 	char uuid [46];
 	snprintf(uuid, sizeof(uuid),
@@ -458,7 +455,7 @@ xpress_init(xpress_t *xpress, const size_t max_nvoices, LV2_URID_Map *map,
 
 		voice->uuid = 0;
 		voice->target = target && iface
-			? target + i*iface->size
+			? (uint8_t *)target + i*iface->size
 			: NULL;
 	}
 
@@ -501,7 +498,7 @@ xpress_get(xpress_t *xpress, xpress_uuid_t uuid)
 
 static inline int
 xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
-	const LV2_Atom_Object *obj, LV2_Atom_Forge_Ref *ref)
+	const LV2_Atom_Object *obj, LV2_Atom_Forge_Ref *ref __attribute__((unused)))
 {
 	if(!lv2_atom_forge_is_object_type(forge, obj->atom.type))
 		return 0;
