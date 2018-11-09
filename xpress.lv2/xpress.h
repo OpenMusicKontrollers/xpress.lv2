@@ -570,8 +570,6 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 			}
 		}
 
-		unsigned freed = 0;
-
 		XPRESS_VOICE_FOREACH(xpress, voice)
 		{
 			if(!voice->uuid) continue;
@@ -582,7 +580,6 @@ xpress_advance(xpress_t *xpress, LV2_Atom_Forge *forge, uint32_t frames,
 				if( (xpress->event_mask & XPRESS_EVENT_DEL) && xpress->iface->del)
 					xpress->iface->del(xpress->data, frames, voice->uuid, voice->target);
 
-				freed += 1;
 				voice->uuid = 0; // invalidate
 			}
 		}
@@ -619,8 +616,6 @@ xpress_synced(xpress_t *xpress)
 static inline void
 xpress_post(xpress_t *xpress, int64_t frames)
 {
-	unsigned freed = 0;
-
 	XPRESS_VOICE_FOREACH(xpress, voice)
 	{
 		if(!voice->uuid) continue;
@@ -630,7 +625,6 @@ xpress_post(xpress_t *xpress, int64_t frames)
 			if( (xpress->event_mask & XPRESS_EVENT_DEL) && xpress->iface->del)
 				xpress->iface->del(xpress->data, frames, voice->uuid, voice->target);
 
-			freed += 1;
 			voice->uuid = 0; // invalidate
 		}
 	}
