@@ -179,7 +179,7 @@ struct _xpress_t {
 static inline bool
 _xpress_voice_not_end(xpress_t *xpress, xpress_voice_t *voice)
 {
-	return (voice - xpress->voices) < xpress->max_nvoices;
+	return (unsigned)(voice - xpress->voices) < xpress->max_nvoices;
 }
 
 // rt-safe
