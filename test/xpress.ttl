@@ -22,7 +22,6 @@
 @prefix urid:			<http://lv2plug.in/ns/ext/urid#> .
 @prefix log:			<http://lv2plug.in/ns/ext/log#> .
 
-@prefix lic:			<http://opensource.org/licenses/> .
 @prefix omk:			<http://open-music-kontrollers.ch/ventosus#> .
 @prefix proj:			<http://open-music-kontrollers.ch/lv2/> .
 @prefix xpress:		<http://open-music-kontrollers.ch/lv2/xpress#> .
@@ -54,7 +53,7 @@ xpress:test
 	a lv2:Plugin ,
 		lv2:ConverterPlugin ;
 	doap:name "Xpress Test" ;
-	doap:license lic:Artistic-2.0 ;
+	doap:license <https://spdx.org/licenses/Artistic-2.0> ;
 	lv2:project proj:xpress ;
 	lv2:requiredFeature urid:map, log:log ;
 	lv2:optionalFeature lv2:isLive, lv2:hardRTCapable, xpress:voiceMap ;
